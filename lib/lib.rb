@@ -159,7 +159,7 @@ module Lib
         if contentType === 'application/json' then
           response = response.to_s
           begin
-            response = JSON.parse(response);
+            response = ('{['.include? response[0]) ? JSON.parse(response) : JSON.parse("[#{response}]")[0]
           rescue
             response = nil
           end
