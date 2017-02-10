@@ -36,7 +36,7 @@ module Lib
         raise StandardError, "#{names.join('.')} invalid version: #{str}"
       end
 
-      return names + [str];
+      return names + [str]
 
     end
 
@@ -168,7 +168,7 @@ module Lib
         end
 
         if status / 100 != 2 then
-          raise StandardError, "Lib.#{names.join('.')}: #{response}", caller
+          raise StandardError, "#{response}", caller
         end
 
       rescue Exception => e

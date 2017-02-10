@@ -1,6 +1,6 @@
 Gem::Specification.new do |g|
   g.name        = 'lib'
-  g.version     = '2.0.1'
+  g.version     = '2.0.2'
   g.date        = Date.today.to_s
   g.summary     = "StdLib: Standard Library for Microservices Ruby Bindings"
   g.description = "StdLib: Standard Library for Microservices Ruby Bindings"
