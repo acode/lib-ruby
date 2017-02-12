@@ -1,5 +1,10 @@
 # StdLib Ruby Bindings
 
+[Node](https://github.com/stdlib/lib-node) |
+[Python](https://github.com/stdlib/lib-python) |
+**Ruby** |
+[Web](https://github.com/stdlib/lib-js)
+
 Basic Ruby bindings for StdLib service accession.
 
 Used to interface with services built using [StdLib](https://stdlib.com) and
