@@ -90,6 +90,6 @@ result = Lib['stdlib.reflect[@0.0.1].main'].exec! 0, 1, kwarg: 'value'
 To learn more about StdLib, visit [stdlib.com](https://stdlib.com) or read the
 [StdLib CLI documentation on GitHub](https://github.com/stdlib/lib).
 
-You can follow the development team on Twitter, [@polybit](https://twitter.com/polybit)
+You can follow the development team on Twitter, [@StdLibHQ](https://twitter.com/stdlibhq)
 
 StdLib is &copy; 2016 - 2017 Polybit Inc.
