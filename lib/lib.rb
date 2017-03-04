@@ -2,26 +2,32 @@ require 'net/https'
 require 'json'
 
 module Lib
-
-  def self.[](name)
-    self.method_missing(name)
+  class << self
+    def [](name)
+      proxy_to_generator(name)
+    end
+  
+    def method_missing(name)
+      proxy_to_generator(name)
+    end
+  
+    def proxy_to_generator(name)
+      LibGen.new[name]
+    end
   end
-
-  def self.method_missing(name)
-    LibGen.new({})[name]
-  end
-
+  
   class LibGen
 
     HOST = 'f.stdlib.com'
     PORT = 443
     PATH = '/'
 
-    def initialize(cfg={}, names=[])
-      cfg[:host] ||= HOST
-      cfg[:port] = PORT 
-      cfg[:path] = PATH
-      @cfg = cfg
+    attr_reader :host, :port, :path
+
+    def initialize(host = HOST, port = PORT, path = PATH, names=[])
+      @host = host
+      @port = port
+      @path = path
       @names = names
     end
 
@@ -99,7 +105,7 @@ module Lib
     end
 
     def method_missing(name)
-      LibGen.new(@cfg, __append_lib_path__(@names, name.to_s))
+      LibGen.new(host, port, path, __append_lib_path__(@names, name.to_s))
     end
 
     def exec!(*args)
@@ -128,11 +134,10 @@ module Lib
         end
 
         body = JSON.generate({args: args, kwargs: kwargs})
-
-        https = Net::HTTP.new(@cfg[:host], @cfg[:port])
+        https = Net::HTTP.new(host, port)
         https.use_ssl = true
         https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        req = Net::HTTP::Post.new "#{@cfg[:path]}#{name}"
+        req = Net::HTTP::Post.new "#{@path}#{name}"
         req.add_field 'Content-Type', 'application/json'
         req.body = body
         res = https.request req
