@@ -77,17 +77,13 @@ module Lib
         while arr.length > 0 do
           names = __append_lib_path__(names, arr.shift)
         end
-
         return names
 
       elsif names.length === 2 && names[0] != '' then
-
         if str[0] === '@' then
-
           return __append_version__(names, str)
 
         else
-
           return __append_path__(__append_version__(names, default_version), str)
 
         end
@@ -144,18 +140,17 @@ module Lib
         headers = {}
         status = http_response.code.to_i
         http_response.each_header { |header, value| headers[header.downcase] = value }
-        contentType = headers['content-type']
+        content_type = headers['content-type']
         response = http_response.body
 
-        if contentType === 'application/json' then
-          response = response.to_s
+        response = if content_type === 'application/json' then
           begin
-            response = ('{['.include? response[0]) ? JSON.parse(response) : JSON.parse("[#{response}]")[0]
+           ('{['.include? http_response.body.to_s[0]) ? JSON.parse(http_response.body.to_s) : JSON.parse("[#{http_response.body_.to_s}]")[0]
           rescue
-            response = nil
+           nil
           end
-        elsif contentType =~ /^text\/.*$/i then
-          response = response.to_s
+        elsif content_type =~ /^text\/.*$/i then
+          http_response.body.to_s
         end
 
         if status / 100 != 2 then
