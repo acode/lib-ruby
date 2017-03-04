@@ -8,56 +8,47 @@ module Lib
   end
 
   def self.method_missing(name)
-    libGen = LibGen.new({})
-    libGen[name]
+    LibGen.new({})[name]
   end
 
   class LibGen
 
-    @@HOST = 'f.stdlib.com'
-    @@PORT = 443
-    @@PATH = '/'
+    HOST = 'f.stdlib.com'
+    PORT = 443
+    PATH = '/'
 
-    def initialize(cfg={}, names=Array.new)
-      cfg[:host] = @@HOST unless cfg.has_key? :host
-      cfg[:port] = @@PORT unless cfg.has_key? :port
-      cfg[:path] = @@PATH unless cfg.has_key? :path
+    def initialize(cfg={}, names=[])
+      cfg[:host] ||= HOST
+      cfg[:port] = PORT 
+      cfg[:path] = PATH
       @cfg = cfg
       @names = names
     end
 
-    def to_str()
+    def to_s()
       @names.join('.')
     end
 
     def __append_version__(names, str)
-
       if /^@[A-Z0-9\-\.]+$/i !~ str then
         raise StandardError, "#{names.join('.')} invalid version: #{str}"
       end
 
-      return names + [str]
-
+      names + [str]
     end
 
     def __append_path__(names, str)
-
       if /^[A-Z0-9\-]+$/i !~ str then
-
         if str.include? '@' then
           raise StandardError, "#{names.join('.')} invalid name: #{str}, please specify versions and environments with [@version]"
         end
 
         raise StandardError, "#{names.join('.')} invalid name: #{str}"
-
       end
-
-      return names + [str]
-
+      names + [str]
     end
 
     def __append_lib_path__(names, str)
-
       names = if names.length then names + [] else [] end
       default_version = '@release'
 
@@ -67,17 +58,14 @@ module Lib
 
       elsif names.length === 0 && (str.include? '.') then
 
-        versionMatch = str.match /^[^\.]+?\.[^\.]*?(\[@[^\[\]]*?\])(\.|$)/
-        arr = []
-
-        if versionMatch then
+        arr = if versionMatch = str.match(/^[^\.]+?\.[^\.]*?(\[@[^\[\]]*?\])(\.|$)/)
           version = versionMatch[1]
-          version = version.gsub /^\[?(.*?)\]?$/, '\1'
+          version = version.gsub(/^\[?(.*?)\]?$/, '\1')
           str = str.gsub versionMatch[1], ''
           arr = str.split '.'
-          arr = arr[0...2] + [version] + (arr[2..-1] || [])
+          arr[0...2] + [version] + (arr[2..-1] || [])
         else
-          arr = if str == '.' then [''] else str.split '.' end
+          if str == '.' then [''] else str.split '.' end
         end
 
         while arr.length > 0 do
@@ -115,7 +103,6 @@ module Lib
     end
 
     def exec!(*args)
-
       names = @names
       name = names[0...2].join('/') + (if names[2..-1] then names[2..-1].join('/') else '' end)
       kwargs = if args[-1].is_a? ::Hash then args.pop else {} end

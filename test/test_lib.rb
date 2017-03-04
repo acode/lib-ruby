@@ -1,7 +1,7 @@
 require 'minitest/autorun'
 require 'lib'
 
-class LibTest < Minitest::Unit::TestCase
+class LibTest < Minitest::Test
 
   def check_result(result)
     assert_instance_of Hash, result
