@@ -108,6 +108,17 @@ module Lib
       LibGen.new(host, port, path, __append_lib_path__(@names, name.to_s))
     end
 
+    def make_http_call(args, kwargs, name)
+      body = JSON.generate({args: args, kwargs: kwargs})
+      https = Net::HTTP.new(host, port)
+      https.use_ssl = true
+      https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      req = Net::HTTP::Post.new "#{@path}#{name}"
+      req.add_field 'Content-Type', 'application/json'
+      req.body = body
+      https.request req
+    end
+
     def exec!(*args)
       names = @names
       name = names[0...2].join('/') + (if names[2..-1] then names[2..-1].join('/') else '' end)
@@ -127,20 +138,14 @@ module Lib
           raise StandardError, "StdLib local execution currently unavailable in Ruby", caller
         end
 
-        body = JSON.generate({args: args, kwargs: kwargs})
-        https = Net::HTTP.new(host, port)
-        https.use_ssl = true
-        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        req = Net::HTTP::Post.new "#{@path}#{name}"
-        req.add_field 'Content-Type', 'application/json'
-        req.body = body
-        res = https.request req
+
+	http_response = make_http_call(args, kwargs, name)
 
         headers = {}
-        status = res.code.to_i
-        res.each_header { |header, value| headers[header.downcase] = value }
+        status = http_response.code.to_i
+        http_response.each_header { |header, value| headers[header.downcase] = value }
         contentType = headers['content-type']
-        response = res.body
+        response = http_response.body
 
         if contentType === 'application/json' then
           response = response.to_s
