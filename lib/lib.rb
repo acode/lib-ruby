@@ -118,13 +118,7 @@ module Lib
       begin
 
         args.each do |v|
-          if v != nil and
-            not v.is_a? ::TrueClass and
-            not v.is_a? ::FalseClass and
-            not v.is_a? ::String and
-            not v.is_a? ::Fixnum and
-            not v.is_a? ::Float and
-            not v.is_a? ::Bignum then
+          if ![nil, true, false, String, Numeric].any? {|t| v === t } then
               raise ArgumentError, "Lib.#{names.join('.')}: All arguments must be Boolean, Number, String or nil", caller[2..-1]
           end
         end
