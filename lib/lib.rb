@@ -4,15 +4,11 @@ require 'json'
 module Lib
   class << self
     def [](name)
-      proxy_to_generator(name)
+      LibGen.proxy_method_missing(name)
     end
   
     def method_missing(name)
-      proxy_to_generator(name)
-    end
-  
-    def proxy_to_generator(name)
-      LibGen.new[name]
+      LibGen.proxy_method_missing(name)
     end
   end
   
@@ -24,6 +20,10 @@ module Lib
 
     attr_reader :host, :port, :path
 
+    def self.proxy_method_missing(name)
+      self.new[name]
+    end
+
     def initialize(host = HOST, port = PORT, path = PATH, names=[])
       @host = host
       @port = port
@@ -31,7 +31,7 @@ module Lib
       @names = names
     end
 
-    def to_s()
+    def to_s
       @names.join('.')
     end
 
@@ -97,7 +97,7 @@ module Lib
     end
 
     def [](name)
-      self.method_missing(name)
+      method_missing(name)
     end
 
     def method_missing(name)
@@ -109,7 +109,7 @@ module Lib
       https = Net::HTTP.new(host, port)
       https.use_ssl = true
       https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      req = Net::HTTP::Post.new "#{@path}#{name}"
+      req = Net::HTTP::Post.new "#{path}#{name}"
       req.add_field 'Content-Type', 'application/json'
       req.body = body
       https.request req
@@ -117,13 +117,11 @@ module Lib
 
     def exec!(*args)
       names = @names
-      name = names[0...2].join('/') + (if names[2..-1] then names[2..-1].join('/') else '' end)
+      path = names[0...2].join('/') + (if names[2..-1] then names[2..-1].join('/') else '' end)
       kwargs = if args[-1].is_a? ::Hash then args.pop else {} end
       is_local = names[0].empty?
-      response = nil
 
       begin
-
         args.each do |v|
           if ![nil, true, false, String, Numeric].any? {|t| v === t } then
               raise ArgumentError, "Lib.#{names.join('.')}: All arguments must be Boolean, Number, String or nil", caller[2..-1]
@@ -135,7 +133,7 @@ module Lib
         end
 
 
-	http_response = make_http_call(args, kwargs, name)
+	http_response = make_http_call(args, kwargs, path)
 
         headers = {}
         status = http_response.code.to_i
