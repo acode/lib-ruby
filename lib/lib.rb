@@ -106,61 +106,47 @@ module Lib
       names = @names
       account, function, *rest = names
       path = [account,function].join("/") + rest.join("/")
-      kwargs = if args[-1].kind_of? Hash then args.pop else {} end
+      kwargs = if args.last.kind_of? Hash then args.pop else {} end
       is_local = names.first.empty?
 
-      begin
-        args.each do |v|
-          if ![nil, true, false, String, Numeric].any? {|t| v === t } then
-              raise ArgumentError, "Lib.#{names.join('.')}: All arguments must be Boolean, Number, String or nil", caller[2..-1]
-          end
+      args.each do |v|
+        if ![nil, true, false, String, Numeric].any? {|t| v === t } then
+            raise ArgumentError, "Lib.#{names.join('.')}: All arguments must be Boolean, Number, String or nil", caller[2..-1]
         end
+      end
 
-        if is_local then
-          raise StandardError, "StdLib local execution currently unavailable in Ruby", caller
+      if is_local then
+        raise StandardError, "StdLib local execution currently unavailable in Ruby", caller
+      end
+
+
+      http_response = make_http_call(args, kwargs, path)
+      headers = {}
+      status = http_response.code.to_i
+      http_response.each_header { |header, value| headers[header.downcase] = value }
+      content_type = headers['content-type']
+      response = http_response.body
+
+      response = if content_type === 'application/json' then
+        begin
+         ('{['.include? http_response.body.to_s[0]) ? JSON.parse(http_response.body.to_s) : JSON.parse("[#{http_response.body_.to_s}]")[0]
+        rescue
+         nil
         end
+      elsif content_type =~ /^text\/.*$/i then
+        http_response.body.to_s
+      end
 
-
-	http_response = make_http_call(args, kwargs, path)
-
-        headers = {}
-        status = http_response.code.to_i
-        http_response.each_header { |header, value| headers[header.downcase] = value }
-        content_type = headers['content-type']
-        response = http_response.body
-
-        response = if content_type === 'application/json' then
-          begin
-           ('{['.include? http_response.body.to_s[0]) ? JSON.parse(http_response.body.to_s) : JSON.parse("[#{http_response.body_.to_s}]")[0]
-          rescue
-           nil
-          end
-        elsif content_type =~ /^text\/.*$/i then
-          http_response.body.to_s
-        end
-
-        if status / 100 != 2 then
-          raise StandardError, "#{response}", caller
-        end
-
-      rescue Exception => e
-
-        if block_given? then
-          yield e, nil
-          return
-        else
-          raise e
-        end
-
+      if status / 100 != 2 then
+        raise StandardError, "#{response}", caller
       end
 
       if block_given? then
-        yield nil, response
+        yield response
         return
       else
-        return response
+        response
       end
-
     end
 
     private :append_version

@@ -43,8 +43,7 @@ class LibTest < Minitest::Test
   end
 
   def test_block?
-    Lib.stdlib.reflect.exec! key: 'Test' do |err, result|
-      assert_nil err
+    Lib.stdlib.reflect.exec! key: 'Test' do |result|
       check_result result
     end
   end
@@ -72,26 +71,4 @@ class LibTest < Minitest::Test
       assert_instance_of StandardError, err
     end
   end
-
-  def test_block_errors_with_array?
-    Lib.stdlib.reflect.exec! [] do |err, result|
-      assert_instance_of ArgumentError, err
-      assert_nil result
-    end
-  end
-
-  def test_block_errors_with_not_found?
-    Lib.stdlib.x.exec! do |err, result|
-      assert_instance_of StandardError, err
-      assert_nil result
-    end
-  end
-
-  def test_block_errors_with_local?
-    Lib['.local'].exec! do |err, result|
-      assert_instance_of StandardError, err
-      assert_nil result
-    end
-  end
-
 end
