@@ -35,7 +35,7 @@ module Lib
       @names.join('.')
     end
 
-    def __append_version__(names, str)
+    def append_version(names, str)
       if /^@[A-Z0-9\-\.]+$/i !~ str then
         raise StandardError, "#{names.join('.')} invalid version: #{str}"
       end
@@ -43,7 +43,7 @@ module Lib
       names + [str]
     end
 
-    def __append_path__(names, str)
+    def append_path(names, str)
       if /^[A-Z0-9\-]+$/i !~ str then
         if str.include? '@' then
           raise StandardError, "#{names.join('.')} invalid name: #{str}, please specify versions and environments with [@version]"
@@ -54,8 +54,8 @@ module Lib
       names + [str]
     end
 
-    def __append_lib_path__(names, str)
-      names = if names.length then names + [] else [] end
+    def append_lib_path(names, str)
+      names = if names.length > 0 then names + [] else [] end
       default_version = '@release'
 
       if names.length === 0 && str === '' then
@@ -64,10 +64,10 @@ module Lib
 
       elsif names.length === 0 && (str.include? '.') then
 
-        arr = if versionMatch = str.match(/^[^\.]+?\.[^\.]*?(\[@[^\[\]]*?\])(\.|$)/)
-          version = versionMatch[1]
+        arr = if version_match = str.match(/^[^\.]+?\.[^\.]*?(\[@[^\[\]]*?\])(\.|$)/)
+          version = version_match[1]
           version = version.gsub(/^\[?(.*?)\]?$/, '\1')
-          str = str.gsub versionMatch[1], ''
+          str = str.gsub version_match[1], ''
           arr = str.split '.'
           arr[0...2] + [version] + (arr[2..-1] || [])
         else
@@ -75,22 +75,22 @@ module Lib
         end
 
         while arr.length > 0 do
-          names = __append_lib_path__(names, arr.shift)
+          names = append_lib_path(names, arr.shift)
         end
         return names
 
       elsif names.length === 2 && names[0] != '' then
         if str[0] === '@' then
-          return __append_version__(names, str)
+          return append_version(names, str)
 
         else
-          return __append_path__(__append_version__(names, default_version), str)
+          return append_path(append_version(names, default_version), str)
 
         end
 
       else
 
-        return __append_path__(names, str)
+        return append_path(names, str)
 
       end
 
@@ -101,7 +101,7 @@ module Lib
     end
 
     def method_missing(name)
-      LibGen.new(host, port, path, __append_lib_path__(@names, name.to_s))
+      LibGen.new(host, port, path, append_lib_path(@names, name.to_s))
     end
 
     def make_http_call(args, kwargs, name)
@@ -175,9 +175,9 @@ module Lib
 
     end
 
-    private :__append_version__
-    private :__append_path__
-    private :__append_lib_path__
+    private :append_version
+    private :append_path
+    private :append_lib_path
 
   end
 
