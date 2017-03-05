@@ -125,23 +125,26 @@ module Lib
         end
         names + [str]
       end
+
+      def with_extracted_version(str)
+        if version_match = str.match(/^[^\.]+?\.[^\.]*?(\[@[^\[\]]*?\])(\.|$)/)
+          version = version_match[1]
+          version = version.gsub(/^\[?(.*?)\]?$/, '\1')
+          str = str.gsub version_match[1], ''
+          arr = str.split('.')
+          arr[0...2] + [version] + (arr[2..-1] || [])
+        end
+      end
   
       def append_lib_path(names, str)
         default_version = '@release'
         if names.empty? && str.empty? then
           ['']
         elsif names.empty? && str.include?('.') then
-          arr = if version_match = str.match(/^[^\.]+?\.[^\.]*?(\[@[^\[\]]*?\])(\.|$)/)
-            version = version_match[1]
-            version = version.gsub(/^\[?(.*?)\]?$/, '\1')
-            str = str.gsub version_match[1], ''
-            arr = str.split('.')
-            arr[0...2] + [version] + (arr[2..-1] || [])
-          else
-            if str == '.' then [''] else str.split '.' end
-          end
-          while arr.length > 0 do
-            names = append_lib_path(names, arr.shift)
+	  path_segments = with_extracted_version(str) || (str == '.' ? [''] : str.split('.'))
+
+	  path_segments.each do |segment|
+            names = append_lib_path(names, segment)
           end
           names
         elsif names.length == 2 && !names.first.empty? then
