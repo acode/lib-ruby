@@ -55,45 +55,32 @@ module Lib
     end
 
     def append_lib_path(names, str)
-      names = if names.length > 0 then names + [] else [] end
       default_version = '@release'
-
-      if names.length === 0 && str === '' then
-
-        return names + [str]
-
-      elsif names.length === 0 && (str.include? '.') then
-
+      if names.empty? && str.empty? then
+        ['']
+      elsif names.empty? && str.include?('.') then
         arr = if version_match = str.match(/^[^\.]+?\.[^\.]*?(\[@[^\[\]]*?\])(\.|$)/)
           version = version_match[1]
           version = version.gsub(/^\[?(.*?)\]?$/, '\1')
           str = str.gsub version_match[1], ''
-          arr = str.split '.'
+          arr = str.split('.')
           arr[0...2] + [version] + (arr[2..-1] || [])
         else
           if str == '.' then [''] else str.split '.' end
         end
-
         while arr.length > 0 do
           names = append_lib_path(names, arr.shift)
         end
-        return names
-
-      elsif names.length === 2 && names[0] != '' then
-        if str[0] === '@' then
-          return append_version(names, str)
-
+        names
+      elsif names.length === 2 && !names.first.empty? then
+        if str.start_with?("@") then
+          append_version(names, str)
         else
-          return append_path(append_version(names, default_version), str)
-
+          append_path(append_version(names, default_version), str)
         end
-
       else
-
-        return append_path(names, str)
-
+        append_path(names, str)
       end
-
     end
 
     def [](name)
@@ -117,9 +104,10 @@ module Lib
 
     def exec!(*args)
       names = @names
-      path = names[0...2].join('/') + (if names[2..-1] then names[2..-1].join('/') else '' end)
-      kwargs = if args[-1].is_a? ::Hash then args.pop else {} end
-      is_local = names[0].empty?
+      account, function, *rest = names
+      path = [account,function].join("/") + rest.join("/")
+      kwargs = if args[-1].kind_of? Hash then args.pop else {} end
+      is_local = names.first.empty?
 
       begin
         args.each do |v|
