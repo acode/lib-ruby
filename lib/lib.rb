@@ -24,10 +24,10 @@ module Lib
       self.new[name]
     end
 
-    def initialize(host = HOST, port = PORT, path = PATH, names=[])
-      @host = host
-      @port = port
-      @path = path
+    def initialize(cfg = {}, names=[])
+      @host = cfg[:host] || HOST
+      @port = cfg[:port] || PORT
+      @path = cfg[:path] || PATH
       @names = names
     end
 
