@@ -39,7 +39,7 @@ module Lib
     end
 
     def method_missing(name)
-      LibGen.new(host, port, path, append_lib_path(@names, name.to_s))
+      LibGen.new({host: host, port: port, path: path}, append_lib_path(@names, name.to_s))
     end
 
     def exec!(*args)
